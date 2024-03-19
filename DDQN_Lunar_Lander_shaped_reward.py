@@ -1,13 +1,12 @@
 import numpy as np
 import gym
-import tensorflow.compat.v1  as tf
+import tensorflow  as tf
 from keras import backend as K
 import matplotlib.pyplot as plt
 import random
 from collections import deque
 import time
 import pickle
-tf.disable_v2_behavior()
 
 class Agent:
     def __init__(self, env, optimizer, batch_size):
@@ -22,7 +21,7 @@ class Agent:
         self.replay_exp = deque(maxlen=100000)
 
         self.gamma = 0.99   # discount factor 
-        self.epsilon = 0.5  # exploration intialization
+        self.epsilon = 0.1  # exploration
 
         # Build Policy Network
         self.brain_policy = tf.keras.models.Sequential()
@@ -212,7 +211,6 @@ if __name__ == "__main__":
         # update model_target after each episode
         agent.update_brain_target()
         
-        agent.epsilon = max(0.01, 0.995 * agent.epsilon)  # decaying exploration
         print("Episode {0} | reward {1} | steps {2} | time in goal {3} | exited {4} | disc reward {5}".format(episode, total_reward, timestep, 
                                                                                                               time_in, exit_times, discounted_rewards[episode]))
 
