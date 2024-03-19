@@ -9,7 +9,7 @@ class Pole:
     def __init__(self, buckets=(41, 39,), n_episodes=1000, nstep_episode=1000, gamma=0.99, alpha=0.8, epsilon=0.05):
 
         self.folder = 'Data'
-        self.sets = 1
+        self.sets = 5
         self.buckets = buckets
         self.n_episodes = n_episodes
         self.nstep_episode = nstep_episode
@@ -220,10 +220,10 @@ class Pole:
                     if self.counter == self.thresholds[jj] and p[jj] == 0:
                         p[jj] = 1
                         self.lambda3[ii, jj] = self.e - 1
-                        np.save(self.folder + '/Tables/Q_CTQL_' + str(ii + 1) + '_' + str(jj) + '_.npy', solver.Q)
+                        np.save(self.folder + '/Tables/Q_' + str(ii + 1) + '_' + str(jj) + '_.npy', solver.Q)
                         print('fine a episodio:', self.lambda3[ii, jj])
             print('end of training ', str(self.e))
-            np.save(self.folder + '/Tables/Q_CTQL_' + str(ii + 1) + '_Final_1_.npy', solver.Q)
+            np.save(self.folder + '/Tables/Q_' + str(ii + 1) + '_Final_1_.npy', solver.Q)
             self.e = 0
             self.Q = 0 * self.Q + self.sigma
 
@@ -243,8 +243,8 @@ if __name__ == "__main__":
     plt.fill_between(range(0, solver.n_episodes), avg_r - std_r, avg_r + std_r, facecolor='blue', alpha=0.2)
     plt.xlim([0, solver.n_episodes])
 
-    np.save(solver.folder + '/R_CTQL.npy', solver.r)
-    np.save(solver.folder + '/T_CTQL.npy', solver.tutor)
+    np.save(solver.folder + '/rewards.npy', solver.r)
+    np.save(solver.folder + '/exploration.npy', solver.tutor)
     np.save(solver.folder + '/lambda3.npy', solver.lambda3)
 
     lambda1 = np.max(avg_r)
