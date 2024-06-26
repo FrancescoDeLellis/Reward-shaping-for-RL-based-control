@@ -13,7 +13,8 @@ class Pole:
         self.buckets = buckets
         self.n_episodes = n_episodes
         self.nstep_episode = nstep_episode
-	self.r = np.zeros((self.n_episodes, self.sets))  # rewards
+        self.r = np.zeros((self.n_episodes, self.sets))  # rewards
+        self.trajectory = np.zeros([self.nstep_episode, 2])
         self.e = 0
         self.stabilized = np.zeros((self.n_episodes, self.sets))
         self.tutor = np.zeros((self.n_episodes, self.sets))
@@ -60,6 +61,7 @@ class Pole:
 
         self.Q = self.sigma * np.ones(self.buckets + (self.n_actions,))
 
+    @staticmethod
     def discretize_non_uniformly(obs):
         th = obs[0]
         thd = obs[1]
@@ -130,7 +132,7 @@ class Pole:
 
         return tuple(new_obs)
 
-    def discretize_uniformly(self, obs):
+    def discretize_uniformly(self,obs):
         upper_bounds = [math.pi, 8]
         lower_bounds = [-math.pi, -8]
 
@@ -152,7 +154,6 @@ class Pole:
 
     def update_q(self, state_old, ind, reward, state_new, alpha):
         state_index = self.state_table[state_old[0], state_old[1]]
-        self.aux_tab[state_index][ind] += 1
         self.Q[state_old][ind] += alpha * (reward + self.gamma * np.max(self.Q[state_new]) - self.Q[state_old][ind])
 
     def run(self, conds=np.array([np.pi, 0])):
@@ -188,7 +189,6 @@ class Pole:
                     obs2[1] = obs[2]
                     self.trajectory[i, :] = obs2
                     new_state = self.discretize_non_uniformly(obs2)
-                    self.aux_state_tab[new_state[0], new_state[1]] += 1
 
                     if np.linalg.norm(obs2) < self.theta:
                         sum1 += 1
@@ -205,15 +205,12 @@ class Pole:
                     current_state = new_state
                     obs_pre = obs2
                 self.ts = self.nstep_episode - sum1
-                ic(self.tutor_index[self.e])
                 if sum1 > 100:
                     self.counter += 1
                 else:
                     self.counter = 0
-                print('ciclo for n: ', str(ii + 1), 'episodio: ', str(self.e + 1), 'discounted_reward: ', str(disc_rewrad),
-                      'tutor used: ', str(100 * self.tutor_index[self.e] / self.nstep_episode), '%', 'Ts: ', str(self.nstep_episode - sum1), 'counter: ',
+                print('ciclo for n: ', str(ii + 1), 'episodio: ', str(self.e + 1), 'discounted_reward: ', str(disc_rewrad), '%', 'Ts: ', str(self.nstep_episode - sum1), 'counter: ',
                       self.counter)
-                self.tutor[self.e, ii] = 100 * self.tutor_index[self.e] / self.nstep_episode
                 self.r[self.e, ii] = disc_rewrad
                 self.stabilized[self.e, ii] = sum1
                 self.e += 1
