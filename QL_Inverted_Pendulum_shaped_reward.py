@@ -13,6 +13,7 @@ class Pole:
         self.buckets = buckets
         self.n_episodes = n_episodes
         self.nstep_episode = nstep_episode
+	self.r = np.zeros((self.n_episodes, self.sets))  # rewards
         self.e = 0
         self.stabilized = np.zeros((self.n_episodes, self.sets))
         self.tutor = np.zeros((self.n_episodes, self.sets))
