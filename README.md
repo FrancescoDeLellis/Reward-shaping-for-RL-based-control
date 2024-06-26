@@ -3,7 +3,7 @@ This repository contains the code used in the paper https://ieeexplore.ieee.org/
 
 ```
 @ARTICLE{10534075,
-  author={Lellis, Francesco De and Coraggio, Marco and Russo, Giovanni and Musolesi, Mirco and di Bernardo, Mario},
+  author={De Lellis, Francesco and Coraggio, Marco and Russo, Giovanni and Musolesi, Mirco and di Bernardo, Mario},
   journal={IEEE Transactions on Control Systems Technology}, 
   title={Guaranteeing Control Requirements via Reward Shaping in Reinforcement Learning}, 
   year={2024},
