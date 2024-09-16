@@ -9,12 +9,11 @@ class Pole:
     def __init__(self, buckets=(41, 39,), n_episodes=1000, nstep_episode=1000, gamma=0.99, alpha=0.8, epsilon=0.05):
 
         self.folder = 'Data'
-        self.sets = 5
+        self.sets = 2
         self.buckets = buckets
         self.n_episodes = n_episodes
         self.nstep_episode = nstep_episode
-        self.r = np.zeros((self.n_episodes, self.sets))  # rewards
-        self.trajectory = np.zeros([self.nstep_episode, 2])
+        self.r = np.zeros((n_episodes, nstep_episode))
         self.e = 0
         self.stabilized = np.zeros((self.n_episodes, self.sets))
         self.tutor = np.zeros((self.n_episodes, self.sets))
@@ -38,7 +37,7 @@ class Pole:
         self.ybuf = np.zeros([self.nstep_episode * self.n_episodes,1])
 
         # reward shaping
-        self.theta = 0.02 * np.linalg.norm([8, np.pi])
+        self.theta = 0.05 * np.linalg.norm([8, np.pi])
         self.ks = 500
         self.kout = 1000
 
@@ -59,10 +58,9 @@ class Pole:
                           self.r_max / (1 - self.gamma) - \
                           (self.r_G_max + self.prize) * (self.gamma ** (-self.kout) - 1) / (1 - self.gamma)
 
-        self.Q = self.sigma * np.ones(self.buckets + (self.n_actions,))
+        self.Q = self.sigma * np.zeros(self.buckets + (self.n_actions,))
 
-    @staticmethod
-    def discretize_non_uniformly(obs):
+    def discretize_non_uniformly(self, obs):
         th = obs[0]
         thd = obs[1]
         new_obs = np.array([0, 0])
@@ -132,7 +130,7 @@ class Pole:
 
         return tuple(new_obs)
 
-    def discretize_uniformly(self,obs):
+    def discretize_uniformly(self, obs):
         upper_bounds = [math.pi, 8]
         lower_bounds = [-math.pi, -8]
 
@@ -153,7 +151,6 @@ class Pole:
             return a
 
     def update_q(self, state_old, ind, reward, state_new, alpha):
-        state_index = self.state_table[state_old[0], state_old[1]]
         self.Q[state_old][ind] += alpha * (reward + self.gamma * np.max(self.Q[state_new]) - self.Q[state_old][ind])
 
     def run(self, conds=np.array([np.pi, 0])):
@@ -168,7 +165,7 @@ class Pole:
                 obs2[1] = obs[2]
                 obs_pre = obs2
 
-                current_state = self.discretize_non_uniformly(obs2)
+                current_state = self.discretize_uniformly(obs2)
 
                 disc_rewrad = 0
                 sum1 = 0
@@ -187,9 +184,7 @@ class Pole:
                     obs2 = np.array([0.0, 0.0])
                     obs2[0] = math.atan2(obs[1], obs[0])
                     obs2[1] = obs[2]
-                    self.trajectory[i, :] = obs2
                     new_state = self.discretize_non_uniformly(obs2)
-
                     if np.linalg.norm(obs2) < self.theta:
                         sum1 += 1
                         reward += self.prize
@@ -209,7 +204,7 @@ class Pole:
                     self.counter += 1
                 else:
                     self.counter = 0
-                print('ciclo for n: ', str(ii + 1), 'episodio: ', str(self.e + 1), 'discounted_reward: ', str(disc_rewrad), '%', 'Ts: ', str(self.nstep_episode - sum1), 'counter: ',
+                print('ciclo for n: ', str(ii + 1), 'episodio: ', str(self.e + 1), 'discounted_reward: ', str(disc_rewrad), 'Ts: ', str(self.nstep_episode - sum1), 'counter: ',
                       self.counter)
                 self.r[self.e, ii] = disc_rewrad
                 self.stabilized[self.e, ii] = sum1
@@ -218,10 +213,10 @@ class Pole:
                     if self.counter == self.thresholds[jj] and p[jj] == 0:
                         p[jj] = 1
                         self.lambda3[ii, jj] = self.e - 1
-                        np.save(self.folder + '/Tables/Q_' + str(ii + 1) + '_' + str(jj) + '_.npy', solver.Q)
+                        np.save(self.folder + '/Tables/Q_CTQL_' + str(ii + 1) + '_' + str(jj) + '_.npy', solver.Q)
                         print('fine a episodio:', self.lambda3[ii, jj])
             print('end of training ', str(self.e))
-            np.save(self.folder + '/Tables/Q_' + str(ii + 1) + '_Final_1_.npy', solver.Q)
+            np.save(self.folder + '/Tables/Q_CTQL_' + str(ii + 1) + '_Final_1_.npy', solver.Q)
             self.e = 0
             self.Q = 0 * self.Q + self.sigma
 
@@ -241,8 +236,8 @@ if __name__ == "__main__":
     plt.fill_between(range(0, solver.n_episodes), avg_r - std_r, avg_r + std_r, facecolor='blue', alpha=0.2)
     plt.xlim([0, solver.n_episodes])
 
-    np.save(solver.folder + '/rewards.npy', solver.r)
-    np.save(solver.folder + '/exploration.npy', solver.tutor)
+    np.save(solver.folder + '/R_CTQL.npy', solver.r)
+    np.save(solver.folder + '/T_CTQL.npy', solver.tutor)
     np.save(solver.folder + '/lambda3.npy', solver.lambda3)
 
     lambda1 = np.max(avg_r)
